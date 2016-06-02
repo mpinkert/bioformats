@@ -21,8 +21,9 @@ import ome.units.quantity.Time;
 import ome.units.UNITS;
 
 /**
- * ScanImageTiffReader is the file format reader for ScanImage tiff files
- * @author Pinkert
+ * ScanImageTiffReader is the file format reader 
+ * for the ScanImage TIFF variant
+ * @author Michael Pinkert
  *
  */
 
@@ -30,13 +31,25 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	// -- Constants --
 	private static final String SCANIMAGE_MAGIC_STRING = "scanimage";
 	private static final String METADATA_STRING = "Metadata.xml";
+	private static final String[] XML_SUFFIX = {"xml"};
 	
 	// -- Fields --
+	/**Helper reader for opening images */
+	private TiffReader tiff;
 	
-	private double physicalSizeY, physicalSizeZ;
-	private double physicalSizeX;
-
+	/** Pixel size*/
+	private double physicalSizeX, physicalSizeY, physicalSizeZ;
+	
+	/** Microscope Zoom*/
 	private Double zoom;
+	
+	/** Optional xml file */
+	private Location xmlFile;
+	
+	/** Flag indicating that the reader is operating in a mode where grouping of files is
+	 * disallowed.  This happens when there is no associated Z-stack acquisition
+	 * for the selected file*/
+	private boolean singleTiffMode;
 	
 	// -- Constructor --
 
@@ -52,29 +65,8 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	/* @see loci.formats.IFormatReader#isSingleFile(String) */
 	@Override
 	public boolean isSingleFile(String id) throws FormatException, IOException {
-		/* Check if there is an additional metadata file
-		This file is NOT a part of the native scan image, but must be added to provide pixel size
-	    This checks for a file name that includes Metadata.xml or that is based on the name of the
-	    acquisition
-	    */
-		Location file = new Location(id).getAbsoluteFile();
-	    String name = file.getName();
-	    Location parent = file.getParentFile(); //Parent directory
-	    String acquisition = name.substring(0, name.lastIndexOf("_")-1);
-	    
-	    String[] list = parent.list();
-	    for (int i=0; i<list.length; i++)
-	    {
-	    	/*Checking for the generic metadata files*/
-	    	if (list[i].contains(METADATA_STRING)) return true;
-	    	
-	    	
-	    	/*Checking for acquisition specific metadata file*/
-	    	if(list[i] == acquisition.concat(".xml")) return true;
-	    }
-	    
-	}
-	  
+		return false;
+	}	  
 	  
 	/* @see loci.formats.IFormatReader#isThisType(RandomAccessInputStream) */
 	@Override
@@ -84,31 +76,39 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    if (comment==null) return false;
 	    return comment.indexOf(SCANIMAGE_MAGIC_STRING) >= 0;
 	}
-	
 
-	  /* @see loci.formats.IFormatReader#fileGroupOption(String) */
-	  @Override
-	  public int fileGroupOption(String id) throws FormatException, IOException {
-	    return FormatTools.CAN_GROUP;
-	  }
-	  
+	/* @see loci.formats.IFormatReader#fileGroupOption(String) */
+	@Override
+	public int fileGroupOption(String id) throws FormatException, IOException {
+		return FormatTools.MUST_GROUP;
+	}
+
 	/* @see loci.formats.IFormatReader#close(boolean) */
 	@Override
 	public void close(boolean fileOnly) throws IOException {		  
 		super.close(fileOnly);
-	    if (!fileOnly) {
-	      physicalSizeX = physicalSizeY = physicalSizeZ = 0;
-	      zoom = null;
-	    }
+		if (!fileOnly) {
+			physicalSizeX = physicalSizeY = physicalSizeZ = 0;
+			zoom = null;
+		}
 	}
 
-	  /* @see loci.formats.IFormatReader#getSeriesUsedFiles(boolean) */
-	  @Override
-	  public String[] getSeriesUsedFiles(boolean noPixels) {
-		    FormatTools.assertId(currentId, true, 1);
-		    
-	  }
-	  
+	/* @see loci.formats.IFormatReader#getSeriesUsedFiles(boolean) */
+	@Override
+	public String[] getSeriesUsedFiles(boolean noPixels) {
+		FormatTools.assertId(currentId, true, 1);
+		if (singleTiffMode) return tiff.getSeriesUsedFiles(noPixels);
+		
+		//Holds all file names
+		final ArrayList<String> usedFiles = new ArrayList<String>();
+
+		//Add the optional metadata file to the used files list
+		if (xmlFile != null) usedFiles.add(xmlFile.getAbsolutePath());
+		
+		if (!noPixels){
+		}
+	}
+
 	// -- Internal BaseTiffReader API methods --
 
 	/* @see BaseTiffReader#initStandardMetadata() */
@@ -122,5 +122,23 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	}
 
 	// -- Helper methods --
+	/**Finds the optional XML metadata file*/
+	  private void findMetadataFiles() {
+		    LOGGER.info("Finding metadata files");
+		    if (xmlFile == null) xmlFile = find(XML_SUFFIX);
+		  }
 
+	  /** Finds the first file with one of the given suffixes. */
+	  private Location find(final String[] suffix) {
+	    final Location file = new Location(currentId).getAbsoluteFile();
+	    final Location parent = file.getParentFile();
+	    final String[] listing = parent.list();
+	    for (final String name : listing) {
+	      if (checkSuffix(name, suffix)) {
+	        return new Location(parent, name);
+	      }
+	    }
+	    return null;
+	  }
+	   
 }
