@@ -48,7 +48,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	
 	/** Flag indicating that the reader is operating in a mode where grouping of files is
 	 * disallowed.  This happens when there is no associated Z-stack acquisition
-	 * for the selected file*/
+	 * for the selected file or associated xml file*/
 	private boolean singleTiffMode;
 	
 	// -- Constructor --
@@ -65,9 +65,10 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	/* @see loci.formats.IFormatReader#isSingleFile(String) */
 	@Override
 	public boolean isSingleFile(String id) throws FormatException, IOException {
-		return false;
+		if (singleTiffMode && xmlFile == null) return true;
+		else return false;
 	}	  
-	  
+//	  
 	/* @see loci.formats.IFormatReader#isThisType(RandomAccessInputStream) */
 	@Override
 	public boolean isThisType(RandomAccessInputStream stream) throws IOException {
@@ -106,6 +107,19 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		if (xmlFile != null) usedFiles.add(xmlFile.getAbsolutePath());
 		
 		if (!noPixels){
+			// Add TIFF files to the used files list
+			Location parent = new Location(currentId).getAbsoluteFile().getParentFile();
+
+	    	parent.list(true);
+	    	Arrays.sort(list);
+	    	ArrayList<String> matchingFiles = new ArrayList<String>();
+	    	for (String f : list){
+	    		String path = new Location(parent, f).getAbsolutePath();
+	    		if(isThisType(path))
+	    		{
+	    			
+	    		}
+	    	}
 		}
 	}
 
@@ -114,31 +128,104 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	/* @see BaseTiffReader#initStandardMetadata() */
 	@Override
 	protected void initStandardMetadata() throws FormatException, IOException {
+		super.initStandardMetadata();
+		
+		// parse key/value pairs in the comment
+	    String comment = ifds.get(0).getComment();
+	    String tz = null, tc = null, tt = null;
+	    
+	    if (comment != null){
+	    	String[] lines = comment.split("\n");
+	    	for (String line : lines){
+	    		int equals = line.indexOf("=");
+	            if (equals < 0) continue;
+	            String key = line.substring(0, equals);
+	            String value = line.substring(equals + 1);
+	            addGlobalMeta(key, value);
+	            
+	            //find the Z, C, and T dimension info
+	            if (key.equals("scanimage.SI.hChannels.channelsActive")) tc = value;
+	            else if (key.equals("scanimage.SI.hCycleManager.cycleIdxTotal")) tt = value;
+	            else if(key.equals("scanimage.SI.hStackManager.numSlices")) tz = value;
+	    	}
+	    }
+	    CoreMetadata m = core.get(0);
+
+	    m.sizeT = 1;
+	    if (getSizeZ() == 0) m.sizeZ = 1;
+	    if (getSizeC() == 0) m.sizeC = 1;
+
+	    
+	    
+	    if (tz != null) m.sizeZ *= Integer.parseInt(tz);
+	    if (tt != null) m.sizeT *= Integer.parseInt(tt);
+	    if (tc != null) m.sizeC *= Integer.parseInt(tc);
+	    
+	    
+	    //Calculate the number of images for this data set based on those parameters
+	    m.imageCount = getSizeZ() * getSizeT();
+	    
+	    //Judge whether this is a single image, or a series of images
+	    if (getImageCount() == 1) singleTiffMode = true;
+	    else singleTiffMode = false;
+	    
+	    //look for other TIFF files that belong to this dataset
+	    
+	    if (!singleTiffMode){
+	    	String [] list = getSeriesUsedFiles();
+	    }
+	    
 	}
 
 	/* @see BaseTiffReader#initMetadataStore() */
 	@Override
 	protected void initMetadataStore() throws FormatException {
+		super.initMetadataStore();
+	    MetadataStore store = makeFilterMetadata();
+	    MetadataTools.populatePixels(store, this);
 	}
 
+	// -- Internal FormatReader API methods --
+
+	@Override
+	protected void initFile(String id) throws FormatException, IOException {
+		super.initFile(id);
+
+		tiff = new TiffReader();
+
+		//Check there is a metadata file
+		findMetadataFile();
+
+		//Extract the metadata and any additional file locations
+		initStandardMetadata();
+		
+		//Put the metadata into the bioformats store
+		initMetadataStore();
+	}
+
+	
 	// -- Helper methods --
 	/**Finds the optional XML metadata file*/
-	  private void findMetadataFiles() {
-		    LOGGER.info("Finding metadata files");
-		    if (xmlFile == null) xmlFile = find(XML_SUFFIX);
-		  }
+	private void findMetadataFile() {
+		LOGGER.info("Finding metadata files");
+		if (xmlFile == null) xmlFile = find(XML_SUFFIX);
+	}
+	  
+	/** Finds the first file with one of the given suffixes. */
+	private Location find(final String[] suffix) {
+		final Location file = new Location(currentId).getAbsoluteFile();
+		final Location parent = file.getParentFile();
+		final String[] listing = parent.list();
+		for (final String name : listing) {
+			if (checkSuffix(name, suffix)) {
+				return new Location(parent, name);
+			}
+		}
+		return null;
+	}
 
-	  /** Finds the first file with one of the given suffixes. */
-	  private Location find(final String[] suffix) {
-	    final Location file = new Location(currentId).getAbsoluteFile();
-	    final Location parent = file.getParentFile();
-	    final String[] listing = parent.list();
-	    for (final String name : listing) {
-	      if (checkSuffix(name, suffix)) {
-	        return new Location(parent, name);
-	      }
-	    }
-	    return null;
-	  }
-	   
+	/** Gets the frame index associated with the given (Z, T) position of the file */
+	
+	
+	
 }
