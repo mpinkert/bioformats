@@ -50,6 +50,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	 * disallowed.  This happens when there is no associated Z-stack acquisition
 	 * for the selected file or associated xml file*/
 	private boolean singleTiffMode;
+	//TODO Ask Bioformats whether singleTiffMode is necessary or if we should be relying upon CAN_GROUP.
 	
 	// -- Constructor --
 
@@ -197,10 +198,10 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		findMetadataFile();
 
 		//Extract the metadata and any additional file locations
-		initStandardMetadata();
+		initStandardMetadata(); //Original metadata, all key value pairs
 		
 		//Put the metadata into the bioformats store
-		initMetadataStore();
+		initMetadataStore(); //Core metadata
 	}
 
 	
@@ -224,8 +225,27 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		return null;
 	}
 
-	/** Gets the frame index associated with the given (Z, T) position of the file */
+
 	
-	
+
+	public static void main(String... args) throws FormatException, IOException{
+		String path = "/Users/Pinkert/Desktop/";
+		//Can change ScanImage to just TiffReader as a sanity check
+		ScanImageTiffReader r = new ScanImageTiffReader();
+		boolean match = 
+		r.isThisType(path);
+		System.out.println("Match =" + match);
+		
+		r.setId(path);
+		
+		System.out.println("sizeC =" + r.getSizeC());
+		System.out.println("sizeX =" + r.getSizeX());
+		System.out.println("sizeY =" + r.getSizeY());
+		System.out.println("sizeZ =" + r.getSizeZ());
+		System.out.println("sizeT =" + r.getSizeT());
+
+	}
 	
 }
+
+
