@@ -194,7 +194,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 
 		tiff = new TiffReader();
 
-		//Check there is a metadata file
+		//Check there is a metadata file.
 		findMetadataFile();
 
 		//Extract the metadata and any additional file locations
