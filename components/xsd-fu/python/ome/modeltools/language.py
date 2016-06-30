@@ -41,6 +41,7 @@ class Language(object):
             'ENUM': 'OMEXMLModelEnum.template',
             'ENUM_INCLUDEALL': 'OMEXMLModelAllEnums.template',
             'ENUM_HANDLER': 'OMEXMLModelEnumHandler.template',
+            'QUANTITY': 'OMEXMLModelQuantity.template',
             'CLASS': 'OMEXMLModelObject.template',
             'METADATA_STORE': 'MetadataStore.template',
             'METADATA_RETRIEVE': 'MetadataRetrieve.template',
@@ -97,6 +98,7 @@ class Language(object):
 
         self.omexml_model_package = None
         self.omexml_model_enums_package = None
+        self.omexml_model_quantity_package = None
         self.omexml_model_omexml_model_enum_handlers_package = None
         self.metadata_package = None
         self.omexml_metadata_package = None
@@ -241,8 +243,9 @@ class Java(Language):
         self.primitive_type_map[namespace + 'anyURI'] = 'String'
         self.primitive_type_map[namespace + 'hexBinary'] = 'String'
         self.primitive_type_map['base64Binary'] = 'byte[]'
+        self.primitive_type_map['Map'] = 'List<MapPair>'
 
-        self.model_type_map['MapPairs'] = None
+        self.model_type_map['Map'] = None
         self.model_type_map['M'] = None
         self.model_type_map['K'] = None
         self.model_type_map['V'] = None
@@ -289,11 +292,11 @@ class Java(Language):
     def getDefaultModelBaseClass(self):
         return "AbstractOMEModelObject"
 
-    def typeToUnitsType(self, valueType):
-        return self.model_unit_map[valueType]
+    def typeToUnitsType(self, unitType):
+        return self.model_unit_map[unitType]
 
-    def typeToDefault(self, valueType):
-        return self.model_unit_default[valueType]
+    def typeToDefault(self, unitType):
+        return self.model_unit_default[unitType]
 
     def index_signature(self, name, max_occurs, level, dummy=False):
         """Makes a Java method signature dictionary from an index name."""
@@ -346,8 +349,9 @@ class CXX(Language):
         self.primitive_type_map[namespace + 'anyURI'] = 'std::string'
         self.primitive_type_map[namespace + 'hexBinary'] = 'std::string'
         self.primitive_type_map['base64Binary'] = 'std::vector<uint8_t>'
+        self.primitive_type_map['Map'] = 'OrderedMultimap'
 
-        self.model_type_map['MapPairs'] = None
+        self.model_type_map['Map'] = None
         self.model_type_map['M'] = None
         self.model_type_map['K'] = None
         self.model_type_map['V'] = None
@@ -363,6 +367,7 @@ class CXX(Language):
 
         self.omexml_model_package = "ome::xml::model"
         self.omexml_model_enums_package = "ome::xml::model::enums"
+        self.omexml_model_quantity_package = "ome::xml::model::primitives"
         self.omexml_model_omexml_model_enum_handlers_package = \
             "ome::xml::model::enums::handlers"
         self.metadata_package = "ome::xml::meta"
@@ -371,8 +376,11 @@ class CXX(Language):
     def getDefaultModelBaseClass(self):
         return "detail::OMEModelObject"
 
-    def typeToUnitsType(self, valueType):
-        return "Unit<" + valueType + ">"
+    def typeToUnitsType(self, unitType, valueType=None):
+        if valueType is None:
+            return "%s::Quantity<%s > " % (self.omexml_model_quantity_package, unitType)
+        else:
+            return "%s::Quantity<%s, %s > " % (self.omexml_model_quantity_package, unitType, valueType)
 
     def index_signature(self, name, max_occurs, level, dummy=False):
         """Makes a C++ method signature dictionary from an index name."""
