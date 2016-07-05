@@ -14,11 +14,6 @@ import loci.formats.MetadataTools;
 import loci.formats.meta.MetadataStore;
 import loci.formats.tiff.TiffParser;
 
-import ome.xml.model.primitives.PositiveFloat;
-
-import ome.units.quantity.Length;
-import ome.units.quantity.Time;
-import ome.units.UNITS;
 
 /**
  * ScanImageTiffReader is the file format reader 
@@ -229,9 +224,17 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	
 
 	public static void main(String... args) throws FormatException, IOException{
-		String path = "/Users/Pinkert/Desktop/";
+		
+
+		
+		//Paths for PC and for MAC
+		String path = "C:/Users/Admin2/Documents/cycletest/position_xyz_1.tif";
+		// String path = 
+		
+
 		//Can change ScanImage to just TiffReader as a sanity check
 		ScanImageTiffReader r = new ScanImageTiffReader();
+
 		boolean match = 
 		r.isThisType(path);
 		System.out.println("Match =" + match);
@@ -243,7 +246,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		System.out.println("sizeY =" + r.getSizeY());
 		System.out.println("sizeZ =" + r.getSizeZ());
 		System.out.println("sizeT =" + r.getSizeT());
-
+		r.close();
 	}
 	
 }
