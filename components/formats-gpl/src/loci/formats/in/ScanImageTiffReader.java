@@ -91,7 +91,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	}
 
 	/* @see loci.formats.IFormatReader#getSeriesUsedFiles(boolean) */
-	@Override
+	/*@Override
 	public String[] getSeriesUsedFiles(boolean noPixels) {
 		FormatTools.assertId(currentId, true, 1);
 		if (singleTiffMode) return tiff.getSeriesUsedFiles(noPixels);
@@ -117,7 +117,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    		}
 	    	}
 		}
-	}
+	}*/
 
 	// -- Internal BaseTiffReader API methods --
 
@@ -135,14 +135,24 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    	for (String line : lines){
 	    		int equals = line.indexOf("=");
 	            if (equals < 0) continue;
-	            String key = line.substring(0, equals);
-	            String value = line.substring(equals + 1);
+	            String key = line.substring(0, equals-1);
+	            String value = line.substring(equals + 2);
 	            addGlobalMeta(key, value);
 	            
+	            
+	            
 	            //find the Z, C, and T dimension info
-	            if (key.equals("scanimage.SI.hChannels.channelsActive")) tc = value;
-	            else if (key.equals("scanimage.SI.hCycleManager.cycleIdxTotal")) tt = value;
+	            if (key.equals("scanimage.SI.hChannels.channelDisplay")){
+	            	int count = 1;
+	            	for (int it = 0; it < value.length(); it++)
+	            	{
+	            		if (value.charAt(it) == ';') count++;
+	            	}
+	            	tc = Integer.toString(count);
+	            }
+	            if (key.equals("scanimage.SI.acqsPerLoop")) tt = value;
 	            else if(key.equals("scanimage.SI.hStackManager.numSlices")) tz = value;
+	            
 	    	}
 	    }
 	    CoreMetadata m = core.get(0);
@@ -153,9 +163,9 @@ public class ScanImageTiffReader extends BaseTiffReader {
 
 	    
 	    
-	    if (tz != null) m.sizeZ *= Integer.parseInt(tz);
-	    if (tt != null) m.sizeT *= Integer.parseInt(tt);
-	    if (tc != null) m.sizeC *= Integer.parseInt(tc);
+	    if (tz != null) m.sizeZ = Integer.parseInt(tz);
+	    if (tt != null) m.sizeT = Integer.parseInt(tt);
+	    if (tc != null) m.sizeC = Integer.parseInt(tc);
 	    
 	    
 	    //Calculate the number of images for this data set based on those parameters
@@ -228,8 +238,8 @@ public class ScanImageTiffReader extends BaseTiffReader {
 
 		
 		//Paths for PC and for MAC
-		String path = "C:/Users/Admin2/Documents/cycletest/position_xyz_1.tif";
-		// String path = 
+		//String path = "C:/Users/Admin2/Documents/cycletest/position_xyz_1.tif";
+		String path = "/Users/Pinkert/Documents/SampleImages/cycletest/position_xyz_1.tif"; 
 		
 
 		//Can change ScanImage to just TiffReader as a sanity check
@@ -237,15 +247,15 @@ public class ScanImageTiffReader extends BaseTiffReader {
 
 		boolean match = 
 		r.isThisType(path);
-		System.out.println("Match =" + match);
+		System.out.println("Match = " + match);
 		
 		r.setId(path);
 		
-		System.out.println("sizeC =" + r.getSizeC());
-		System.out.println("sizeX =" + r.getSizeX());
-		System.out.println("sizeY =" + r.getSizeY());
-		System.out.println("sizeZ =" + r.getSizeZ());
-		System.out.println("sizeT =" + r.getSizeT());
+		System.out.println("sizeC = " + r.getSizeC());
+		System.out.println("sizeX = " + r.getSizeX());
+		System.out.println("sizeY = " + r.getSizeY());
+		System.out.println("sizeZ = " + r.getSizeZ());
+		System.out.println("sizeT = " + r.getSizeT());
 		r.close();
 	}
 	
