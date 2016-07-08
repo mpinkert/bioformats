@@ -38,6 +38,9 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	/** Microscope Zoom*/
 	private Double zoom;
 	
+	/** The list of tif files that should be present based on the metadata */
+	private String[] tifList;
+	
 	/** Optional xml file */
 	private Location xmlFile;
 	
@@ -102,21 +105,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		//Add the optional metadata file to the used files list
 		if (xmlFile != null) usedFiles.add(xmlFile.getAbsolutePath());
 		
-		if (!noPixels){
-			// Add TIFF files to the used files list
-			Location parent = new Location(currentId).getAbsoluteFile().getParentFile();
-
-	    	parent.list(true);
-	    	Arrays.sort(list);
-	    	ArrayList<String> matchingFiles = new ArrayList<String>();
-	    	for (String f : list){
-	    		String path = new Location(parent, f).getAbsolutePath();
-	    		if(isThisType(path))
-	    		{
-	    			
-	    		}
-	    	}
-		}
+		
 	}*/
 
 	// -- Internal BaseTiffReader API methods --
@@ -162,7 +151,6 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    if (getSizeC() == 0) m.sizeC = 1;
 
 	    
-	    
 	    if (tz != null) m.sizeZ = Integer.parseInt(tz);
 	    if (tt != null) m.sizeT = Integer.parseInt(tt);
 	    if (tc != null) m.sizeC = Integer.parseInt(tc);
@@ -176,8 +164,13 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    else singleTiffMode = false;
 	    
 	    //look for other TIFF files that belong to this dataset
-	    
 	    if (!singleTiffMode){
+	    	Location file = new Location(currentId);
+	    	String fileName = file.getName();
+	    	String prefix = fileName.substring(0, fileName.lastIndexOf('_'));
+	    	
+	    	
+	    	
 	    	String [] list = getSeriesUsedFiles();
 	    }
 	    
@@ -199,6 +192,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 
 		tiff = new TiffReader();
 
+		
 		//Check there is a metadata file.
 		findMetadataFile();
 
@@ -230,9 +224,32 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		return null;
 	}
 
-
+	/** Gets the sequence associated with the file*/
+	private String[] sequence()
+	{
+	
+	}
 	
 
+	/** Emits a warning about a missing {@code <File>}. */
+	private void warnFile(String missingFile){
+		LOGGER.warn("The file ", missingFile, " does not exist.");
+	}
+	
+	/** Emits a warning about the file having an incorrect file name */
+	private void warnFileName(){
+		LOGGER.warn("The file name does not match the metadata");
+	}
+	
+	/** Emits a warning about a mismatch between the number of channels in the metadata and the file*/
+	private void warnChannels(int metaChannels, int actualChannels){
+		LOGGER.warn("The metadata claims the file should have #{} channels, but only #{} are present", metaChannels, actualChannels);
+	}
+	
+	
+	/** Emits a warning */
+	
+	
 	public static void main(String... args) throws FormatException, IOException{
 		
 
