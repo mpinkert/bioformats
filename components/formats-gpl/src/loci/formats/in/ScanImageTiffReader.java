@@ -117,7 +117,10 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		
 		// parse key/value pairs in the comment
 	    String comment = ifds.get(0).getComment();
+	    
+	    //Dimension values
 	    String tz = null, tc = null, tt = null;
+	    
 	    
 	    if (comment != null){
 	    	String[] lines = comment.split("\n");
@@ -139,7 +142,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	            	}
 	            	tc = Integer.toString(count);
 	            }
-	            if (key.equals("scanimage.SI.acqsPerLoop")) tt = value;
+	            else if (key.equals("scanimage.SI.acqsPerLoop")) tt = value;
 	            else if(key.equals("scanimage.SI.hStackManager.numSlices")) tz = value;
 	            
 	    	}
@@ -163,15 +166,31 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    if (getImageCount() == 1) singleTiffMode = true;
 	    else singleTiffMode = false;
 	    
+	    
 	    //look for other TIFF files that belong to this dataset
 	    if (!singleTiffMode){
 	    	Location file = new Location(currentId);
 	    	String fileName = file.getName();
-	    	String prefix = fileName.substring(0, fileName.lastIndexOf('_'));
+	    	int fixSeperator = fileName.lastIndexOf('_');
+	    	if (!(fixSeperator > 0))
+	    	{
+	    		warnFileName();
+	    	}
+	    	else{
+	    		String prefix = fileName.substring(0, fileName.lastIndexOf('_'));
 	    	
+	    		String suffix = fileName.substring(fileName.lastIndexOf('_')+1, fileName.lastIndexOf('.'));
 	    	
-	    	
-	    	String [] list = getSeriesUsedFiles();
+	    		//Checking that the suffix is correct according to the metadata
+	    		int xyIdx = Integer.parseInt(getGlobalMeta("scanimage.SI.hCycleManager.cycleIterIdxDone").toString());
+	    		int slices = Integer.parseInt(getGlobalMeta("scanimage.SI.hStackManager.numSlices").toString());
+	    		int acqNum = Integer.parseInt(getGlobalMeta("acquisitionNumbers").toString());
+
+	    		int expectedSuffix = xyIdx*slices + acqNum;
+	    		if (!(Integer.parseInt(suffix) == expectedSuffix)) warnSuffix(suffix, expectedSuffix);
+
+	    		String [] list = getSeriesUsedFiles();
+	    	}
 	    }
 	    
 	}
@@ -225,10 +244,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	}
 
 	/** Gets the sequence associated with the file*/
-	private String[] sequence()
-	{
-	
-	}
+	//private String[] sequence()
 	
 
 	/** Emits a warning about a missing {@code <File>}. */
@@ -238,7 +254,12 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	
 	/** Emits a warning about the file having an incorrect file name */
 	private void warnFileName(){
-		LOGGER.warn("The file name does not match the metadata");
+		LOGGER.warn("The file name is not of the appropriate format.  The file should be named (Prefix)_(Suffix).tif,  Where the suffix is a number determined by ScanImage parameters.");
+	}
+	
+	/** Emits a warning about the file suffix not matching the expected value */
+	private void warnSuffix(String suffix, int expectedSuffix){
+		LOGGER.warn("The file suffix, #{}, does not match the expected suffix, #{}", suffix, expectedSuffix);
 	}
 	
 	/** Emits a warning about a mismatch between the number of channels in the metadata and the file*/
@@ -256,7 +277,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		
 		//Paths for PC and for MAC
 		//String path = "C:/Users/Admin2/Documents/cycletest/position_xyz_1.tif";
-		String path = "/Users/Pinkert/Documents/SampleImages/cycletest/position_xyz_1.tif"; 
+		String path = "/Users/Pinkert/Documents/SampleImages/cycletest/test.tif"; 
 		
 
 		//Can change ScanImage to just TiffReader as a sanity check
