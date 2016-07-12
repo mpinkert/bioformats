@@ -4,11 +4,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import loci.common.DataTools;
+import loci.common.DateTools;
 import loci.common.Location;
 import loci.common.RandomAccessInputStream;
 import loci.formats.CoreMetadata;
 import loci.formats.FormatException;
+import loci.formats.FormatReader;
 import loci.formats.FormatTools;
 import loci.formats.MetadataTools;
 import loci.formats.meta.MetadataStore;
@@ -174,6 +175,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    	int fixSeperator = fileName.lastIndexOf('_');
 	    	if (!(fixSeperator > 0))
 	    	{
+	    		System.out.println("Index of _ = " + fixSeperator);
 	    		warnFileName();
 	    	}
 	    	else{
@@ -276,8 +278,8 @@ public class ScanImageTiffReader extends BaseTiffReader {
 
 		
 		//Paths for PC and for MAC
-		//String path = "C:/Users/Admin2/Documents/cycletest/position_xyz_1.tif";
-		String path = "/Users/Pinkert/Documents/SampleImages/cycletest/test.tif"; 
+		String path = "C:/Users/mpinkert/Documents/SampleImages/cycletest/test.tif";
+		//String path = "/Users/Pinkert/Documents/SampleImages/cycletest/test.tif"; 
 		
 
 		//Can change ScanImage to just TiffReader as a sanity check
