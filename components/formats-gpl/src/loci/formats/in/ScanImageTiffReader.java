@@ -172,10 +172,10 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    if (!singleTiffMode){
 	    	Location file = new Location(currentId);
 	    	String fileName = file.getName();
-	    	int fixSeperator = fileName.lastIndexOf('_');
-	    	if (!(fixSeperator > 0))
+	    	//Separation between the user named prefix and the program named suffix
+	    	int fixSeparator = fileName.lastIndexOf('_');
+	    	if (!(fixSeparator > 0))
 	    	{
-	    		System.out.println("Index of _ = " + fixSeperator);
 	    		warnFileName();
 	    	}
 	    	else{
@@ -183,15 +183,24 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    	
 	    		String suffix = fileName.substring(fileName.lastIndexOf('_')+1, fileName.lastIndexOf('.'));
 	    	
+	    		//check that the suffix is of the appropriate format
+	    		
 	    		//Checking that the suffix is correct according to the metadata
 	    		int xyIdx = Integer.parseInt(getGlobalMeta("scanimage.SI.hCycleManager.cycleIterIdxDone").toString());
 	    		int slices = Integer.parseInt(getGlobalMeta("scanimage.SI.hStackManager.numSlices").toString());
 	    		int acqNum = Integer.parseInt(getGlobalMeta("acquisitionNumbers").toString());
 
 	    		int expectedSuffix = xyIdx*slices + acqNum;
-	    		if (!(Integer.parseInt(suffix) == expectedSuffix)) warnSuffix(suffix, expectedSuffix);
-
-	    		String [] list = getSeriesUsedFiles();
+	    		if (!(Integer.parseInt(suffix) == expectedSuffix)){
+	    			warnSuffix(suffix, expectedSuffix);
+	    			System.out.println("The file suffix, #{}, does not match the expected suffix, #{}", suffix, expectedSuffix");
+	    			//We can still read the file as a single tiff
+	    			singleTiffMode = true;
+	    			
+	    		}
+	    		else{
+	    			String [] list = getSeriesUsedFiles();
+	    		}
 	    	}
 	    }
 	    
@@ -211,10 +220,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	protected void initFile(String id) throws FormatException, IOException {
 		super.initFile(id);
 
-		tiff = new TiffReader();
-
-		
-		//Check there is a metadata file.
+		//Check for a metadata file.
 		findMetadataFile();
 
 		//Extract the metadata and any additional file locations
@@ -256,7 +262,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	
 	/** Emits a warning about the file having an incorrect file name */
 	private void warnFileName(){
-		LOGGER.warn("The file name is not of the appropriate format.  The file should be named (Prefix)_(Suffix).tif,  Where the suffix is a number determined by ScanImage parameters.");
+		LOGGER.warn("The file name is not of the appropriate format.  The file should be named (Prefix)_(Suffix).tif,  Where the suffix is an integer determined by ScanImage parameters.");
 	}
 	
 	/** Emits a warning about the file suffix not matching the expected value */
