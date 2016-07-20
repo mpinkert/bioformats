@@ -191,17 +191,27 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    		int acqNum = Integer.parseInt(getGlobalMeta("acquisitionNumbers").toString());
 
 	    		int expectedSuffix = xyIdx*slices + acqNum;
-	    		if (!(Integer.parseInt(suffix) == expectedSuffix)){
-	    			warnSuffix(suffix, expectedSuffix);
-	    			//System.out.println("The file suffix, #{}, does not match the expected suffix, #{}", suffix, expectedSuffix);
-	    			//We can still read the file as a single tiff
-	    			singleTiffMode = true;
-	    			
+	    		
+	    		//This try/catch statement is an inefficient means of checking whether the suffix
+	    		//Is in the correct integer form without crashing the program if it is not.  
+	    		//TODO: Rewrite this logic to be more efficient.
+	    		try{
+	    			if (!(Integer.parseInt(suffix) == expectedSuffix)){
+	    				warnSuffix(suffix, expectedSuffix);
+	    				//We can still read the file as a single tiff
+	    				singleTiffMode = true;
+
+	    			}
+	    			else{
+	    				String [] list = getSeriesUsedFiles();
+	    			}
 	    		}
-	    		else{
-	    			String [] list = getSeriesUsedFiles();
+	    		catch(NumberFormatException er){
+    				warnSuffix(suffix, expectedSuffix);
+    				//We can still read the file as a single tiff
+    				singleTiffMode = true;
 	    		}
-	    	}
+	    	}	
 	    }
 	    
 	}
@@ -267,7 +277,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	
 	/** Emits a warning about the file suffix not matching the expected value */
 	private void warnSuffix(String suffix, int expectedSuffix){
-		LOGGER.warn("The file suffix, #{}, does not match the expected suffix, #{}", suffix, expectedSuffix);
+		LOGGER.warn("The file suffix, {}, does not match the expected suffix, {}.", suffix, expectedSuffix);
 	}
 	
 	/** Emits a warning about a mismatch between the number of channels in the metadata and the file*/

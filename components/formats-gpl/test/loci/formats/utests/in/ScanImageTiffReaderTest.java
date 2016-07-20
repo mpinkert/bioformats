@@ -55,7 +55,7 @@ public class ScanImageTiffReaderTest {
 		
 		//Paths for PC and for MAC
 		//String path = "C:/Users/mpinkert/Documents/SampleImages/cycletest/test.tif";
-		String path = "/Users/Pinkert/Documents/SampleImages/cycletest/test.tif"; 
+		String path = "/Users/Pinkert/Documents/SampleImages/cycletest/test_df.tif"; 
 		
 
 		//Can change ScanImage to just TiffReader as a sanity check
