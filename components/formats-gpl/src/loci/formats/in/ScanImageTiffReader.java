@@ -193,7 +193,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    		int expectedSuffix = xyIdx*slices + acqNum;
 	    		if (!(Integer.parseInt(suffix) == expectedSuffix)){
 	    			warnSuffix(suffix, expectedSuffix);
-	    			System.out.println("The file suffix, #{}, does not match the expected suffix, #{}", suffix, expectedSuffix");
+	    			//System.out.println("The file suffix, #{}, does not match the expected suffix, #{}", suffix, expectedSuffix);
 	    			//We can still read the file as a single tiff
 	    			singleTiffMode = true;
 	    			
@@ -279,31 +279,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	/** Emits a warning */
 	
 	
-	public static void main(String... args) throws FormatException, IOException{
-		
 
-		
-		//Paths for PC and for MAC
-		String path = "C:/Users/mpinkert/Documents/SampleImages/cycletest/test.tif";
-		//String path = "/Users/Pinkert/Documents/SampleImages/cycletest/test.tif"; 
-		
-
-		//Can change ScanImage to just TiffReader as a sanity check
-		ScanImageTiffReader r = new ScanImageTiffReader();
-
-		boolean match = 
-		r.isThisType(path);
-		System.out.println("Match = " + match);
-		
-		r.setId(path);
-		
-		System.out.println("sizeC = " + r.getSizeC());
-		System.out.println("sizeX = " + r.getSizeX());
-		System.out.println("sizeY = " + r.getSizeY());
-		System.out.println("sizeZ = " + r.getSizeZ());
-		System.out.println("sizeT = " + r.getSizeT());
-		r.close();
-	}
 	
 }
 
