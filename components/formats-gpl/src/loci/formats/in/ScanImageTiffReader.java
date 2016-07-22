@@ -39,6 +39,9 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	/** Microscope Zoom*/
 	private Double zoom;
 	
+	/** The file name prefix for this series of tifs*/
+	private String prefix;
+	
 	/** The list of tif files that should be present based on the metadata */
 	private String[] tifList;
 	
@@ -91,11 +94,15 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		if (!fileOnly) {
 			physicalSizeX = physicalSizeY = physicalSizeZ = 0;
 			zoom = null;
+			prefix = null;
+			tifList = null;
+			xmlFile = null;
+			singleTiffMode = false;
 		}
 	}
 
 	/* @see loci.formats.IFormatReader#getSeriesUsedFiles(boolean) */
-	/*@Override
+	@Override
 	public String[] getSeriesUsedFiles(boolean noPixels) {
 		FormatTools.assertId(currentId, true, 1);
 		if (singleTiffMode) return tiff.getSeriesUsedFiles(noPixels);
@@ -107,7 +114,24 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		if (xmlFile != null) usedFiles.add(xmlFile.getAbsolutePath());
 		
 		
-	}*/
+		if (!noPixels){
+	    	Location file = new Location(currentId);
+	    	String parent = file.getAbsolutePath();
+	    	String base = parent + prefix + "_";
+	    	
+    		int xyIdx = Integer.parseInt(getGlobalMeta("scanimage.SI.hCycleManager.cycleIterIdxDone").toString());
+    		int slices = Integer.parseInt(getGlobalMeta("scanimage.SI.hStackManager.numSlices").toString());
+    		int acqsPerLoop = Integer.parseInt(getGlobalMeta("scanimage.SI.acqsPerLoop").toString());
+    		
+    		for (int i = 0; i < slices*acqsPerLoop; i++)
+    		{
+    			int tempSuffix = xyIdx*slices*acqsPerLoop+1+i;
+    			String tempFile = base + Integer.toString(tempSuffix)+".tif";
+    		}
+		}
+		
+		return usedFiles.toArray(new String[usedFiles.size()]);
+	}
 
 	// -- Internal BaseTiffReader API methods --
 
@@ -168,7 +192,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    else singleTiffMode = false;
 	    
 	    
-	    //look for other TIFF files that belong to this dataset
+	    //Checking if the reader should look for other tiff files that belong to this data set
 	    if (!singleTiffMode){
 	    	Location file = new Location(currentId);
 	    	String fileName = file.getName();
@@ -177,9 +201,10 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    	if (!(fixSeparator > 0))
 	    	{
 	    		warnFileName();
+	    		singleTiffMode = true;
 	    	}
 	    	else{
-	    		String prefix = fileName.substring(0, fileName.lastIndexOf('_'));
+	    		prefix = fileName.substring(0, fileName.lastIndexOf('_'));
 	    	
 	    		String suffix = fileName.substring(fileName.lastIndexOf('_')+1, fileName.lastIndexOf('.'));
 	    	
@@ -189,7 +214,8 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    		int xyIdx = Integer.parseInt(getGlobalMeta("scanimage.SI.hCycleManager.cycleIterIdxDone").toString());
 	    		int slices = Integer.parseInt(getGlobalMeta("scanimage.SI.hStackManager.numSlices").toString());
 	    		int acqNum = Integer.parseInt(getGlobalMeta("acquisitionNumbers").toString());
-
+	    		
+	    		
 	    		int expectedSuffix = xyIdx*slices + acqNum;
 	    		
 	    		//This try/catch statement is an inefficient means of checking whether the suffix
@@ -200,10 +226,20 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    				warnSuffix(suffix, expectedSuffix);
 	    				//We can still read the file as a single tiff
 	    				singleTiffMode = true;
-
 	    			}
-	    			else{
-	    				String [] list = getSeriesUsedFiles();
+	    			//Temporary statement for testing purposes
+	    			else
+	    			{
+	    				
+	    				String parent = file.getParent();
+	    		    	String base = parent + "/" + prefix + "_";
+	    	    		int acqsPerLoop = Integer.parseInt(getGlobalMeta("scanimage.SI.acqsPerLoop").toString());
+	    	    		for (int i = 0; i < slices*acqsPerLoop; i++)
+	    	    		{
+	    	    			int tempSuffix = xyIdx*slices*acqsPerLoop+1+i;
+	    	    			String tempFile = base + Integer.toString(tempSuffix)+".tif";
+	    	    			System.out.println(tempFile);
+	    	    		}
 	    			}
 	    		}
 	    		catch(NumberFormatException er){
