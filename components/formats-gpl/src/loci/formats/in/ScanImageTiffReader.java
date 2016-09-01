@@ -187,7 +187,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    if (tc != null) m.sizeC = Integer.parseInt(tc);
 	    
 
-	    if (!(m.sizeC == numChan))
+	    if (!(Integer.parseInt(tc) == numChan))
 	    {
 	    	warnChannels(m.sizeC, numChan);
 	    }
@@ -235,8 +235,8 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    				//We can still read the file as a single tiff
 	    				singleTiffMode = true;
 	    			}
-	    			//Temporary statement for testing purposes
-	    			else
+	    			//Temporary statement for testing purposes.  A code block to find the files that should exist in the series that is being read.  
+	    			/*else
 	    			{
 	    				
 	    				String parent = file.getParent();
@@ -248,7 +248,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    	    			String tempFile = base + Integer.toString(tempSuffix)+".tif";
 	    	    			System.out.println(tempFile);
 	    	    		}
-	    			}
+	    			}*/
 	    		}
 	    		catch(NumberFormatException er){
     				warnSuffix(suffix, expectedSuffix);
@@ -275,13 +275,13 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		super.initFile(id);
 
 		//Check for a metadata file.
-		findMetadataFile();
+		//findMetadataFile();
 
 		//Extract the metadata and any additional file locations
-		initStandardMetadata(); //Original metadata, all key value pairs
+		//initStandardMetadata(); //Original metadata, all key value pairs
 		
 		//Put the metadata into the bioformats store
-		initMetadataStore(); //Core metadata
+		//initMetadataStore(); //Core metadata
 	}
 
 	
