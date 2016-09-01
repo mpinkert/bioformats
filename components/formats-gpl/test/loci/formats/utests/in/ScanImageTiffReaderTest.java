@@ -33,6 +33,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import loci.common.xml.XMLTools;
 import loci.formats.FormatException;
+import loci.formats.ImageReader;
 import loci.formats.in.ScanImageTiffReader;
 
 import org.testng.annotations.Test;

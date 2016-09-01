@@ -11,6 +11,7 @@ import loci.formats.CoreMetadata;
 import loci.formats.FormatException;
 import loci.formats.FormatReader;
 import loci.formats.FormatTools;
+import loci.formats.ImageReader;
 import loci.formats.MetadataTools;
 import loci.formats.meta.MetadataStore;
 import loci.formats.tiff.TiffParser;
@@ -143,9 +144,10 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		// parse key/value pairs in the comment
 	    String comment = ifds.get(0).getComment();
 	    
-	    //For Curtis, getting the channel size from the base method.
-	    int numChan = getSizeC();
+	    //Getting the channel size from the base method.  ScanImage files have channels in the T dimension for the base tiff reader.
+	    int numChan = getSizeT();
 
+	    System.out.println("Hello");
 	    
 	    //Dimension values
 	    String tz = null, tc = null, tt = null;
@@ -189,7 +191,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    if (tc != null) m.sizeC = Integer.parseInt(tc);
 	    
 
-	    //For Curtis, checking the channel size from the metadata against the original
+	    //Checking the channel size from the metadata against the original
 	    if (!(Integer.parseInt(tc) == numChan))
 	    {
 	    	warnChannels(m.sizeC, numChan);
@@ -323,8 +325,6 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	private void warnChannels(int metaChannels, int actualChannels){
 		LOGGER.warn("The metadata claims the file should have {} channels, but only {} are present", metaChannels, actualChannels);
 	}
-	
-	
 	
 
 	
