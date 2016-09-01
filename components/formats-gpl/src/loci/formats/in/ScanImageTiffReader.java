@@ -142,6 +142,8 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		
 		// parse key/value pairs in the comment
 	    String comment = ifds.get(0).getComment();
+	    
+	    //For Curtis, getting the channel size from the base method.
 	    int numChan = getSizeC();
 
 	    
@@ -187,6 +189,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    if (tc != null) m.sizeC = Integer.parseInt(tc);
 	    
 
+	    //For Curtis, checking the channel size from the metadata against the original
 	    if (!(Integer.parseInt(tc) == numChan))
 	    {
 	    	warnChannels(m.sizeC, numChan);
@@ -274,14 +277,6 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	protected void initFile(String id) throws FormatException, IOException {
 		super.initFile(id);
 
-		//Check for a metadata file.
-		//findMetadataFile();
-
-		//Extract the metadata and any additional file locations
-		//initStandardMetadata(); //Original metadata, all key value pairs
-		
-		//Put the metadata into the bioformats store
-		//initMetadataStore(); //Core metadata
 	}
 
 	
