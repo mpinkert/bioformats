@@ -142,6 +142,8 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		
 		// parse key/value pairs in the comment
 	    String comment = ifds.get(0).getComment();
+	    int numChan = getSizeC();
+
 	    
 	    //Dimension values
 	    String tz = null, tc = null, tt = null;
@@ -181,8 +183,14 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    
 	    if (tz != null) m.sizeZ = Integer.parseInt(tz);
 	    if (tt != null) m.sizeT = Integer.parseInt(tt);
+	    
 	    if (tc != null) m.sizeC = Integer.parseInt(tc);
 	    
+
+	    if (!(m.sizeC == numChan))
+	    {
+	    	warnChannels(m.sizeC, numChan);
+	    }
 	    
 	    //Calculate the number of images for this data set based on those parameters
 	    m.imageCount = getSizeZ() * getSizeT();
@@ -318,11 +326,9 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	
 	/** Emits a warning about a mismatch between the number of channels in the metadata and the file*/
 	private void warnChannels(int metaChannels, int actualChannels){
-		LOGGER.warn("The metadata claims the file should have #{} channels, but only #{} are present", metaChannels, actualChannels);
+		LOGGER.warn("The metadata claims the file should have {} channels, but only {} are present", metaChannels, actualChannels);
 	}
 	
-	
-	/** Emits a warning */
 	
 	
 

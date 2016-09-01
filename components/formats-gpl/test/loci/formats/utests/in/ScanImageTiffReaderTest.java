@@ -33,10 +33,7 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import loci.common.xml.XMLTools;
 import loci.formats.FormatException;
-import loci.formats.in.PrairieMetadata;
 import loci.formats.in.ScanImageTiffReader;
-import loci.formats.in.PrairieMetadata.Value;
-import loci.formats.in.PrairieMetadata.ValueTable;
 
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -54,13 +51,14 @@ public class ScanImageTiffReaderTest {
 
 		
 		//Paths for PC and for MAC
-		//String path = "C:/Users/mpinkert/Documents/SampleImages/cycletest/test.tif";
-		String path = "/Users/Pinkert/Documents/SampleImages/cycletest/position_xyz_5.tif"; 
+		//String path = "C:/Users/mpinkert/Documents/SampleImages/multi-channel.ome.tif";
+		String path = "C:/Users/mpinkert/Documents/SampleImages/cycletest/position_xyz_5.tif";
+		//String path = "/Users/Pinkert/Documents/SampleImages/cycletest/position_xyz_5.tif"; 
 		
 
 		//Can change ScanImage to just TiffReader as a sanity check
 		ScanImageTiffReader r = new ScanImageTiffReader();
-
+		
 		boolean match = 
 		r.isThisType(path);
 		System.out.println("Match = " + match);
