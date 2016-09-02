@@ -146,8 +146,6 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    
 	    //Getting the channel size from the base method.  ScanImage files have channels in the T dimension for the base tiff reader.
 	    int numChan = getSizeT();
-
-	    System.out.println("Hello");
 	    
 	    //Dimension values
 	    String tz = null, tc = null, tt = null;
@@ -301,10 +299,6 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		}
 		return null;
 	}
-
-	/** Gets the sequence associated with the file*/
-	//private String[] sequence()
-	
 
 	/** Emits a warning about a missing {@code <File>}. */
 	private void warnFile(String missingFile){

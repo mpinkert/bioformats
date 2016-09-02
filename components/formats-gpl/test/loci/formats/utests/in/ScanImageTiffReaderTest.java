@@ -58,7 +58,8 @@ public class ScanImageTiffReaderTest {
 		
 
 		//Can change ScanImage to just TiffReader as a sanity check
-		ScanImageTiffReader r = new ScanImageTiffReader();
+		//ScanImageTiffReader r = new ScanImageTiffReader();
+		ImageReader r = new ImageReader();
 		
 		boolean match = 
 		r.isThisType(path);
