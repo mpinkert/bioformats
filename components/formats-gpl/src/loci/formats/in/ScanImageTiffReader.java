@@ -106,7 +106,12 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	@Override
 	public String[] getSeriesUsedFiles(boolean noPixels) {
 		FormatTools.assertId(currentId, true, 1);
-		if (singleTiffMode) return tiff.getSeriesUsedFiles(noPixels);
+		Location file = new Location(currentId);
+		
+		String[] singleFile = new String[1];
+		singleFile[0] = file.getName();
+		
+		if (singleTiffMode) return singleFile;
 		
 		//Holds all file names
 		final ArrayList<String> usedFiles = new ArrayList<String>();
@@ -116,9 +121,9 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		
 		
 		if (!noPixels){
-	    	Location file = new Location(currentId);
-	    	String parent = file.getAbsolutePath();
-	    	String base = parent + prefix + "_";
+
+	    	String parent = file.getParent();
+	    	String base = parent + "/" + prefix + "_";
 	    	
     		int xyIdx = Integer.parseInt(getGlobalMeta("scanimage.SI.hCycleManager.cycleIterIdxDone").toString());
     		int slices = Integer.parseInt(getGlobalMeta("scanimage.SI.hStackManager.numSlices").toString());
@@ -128,6 +133,19 @@ public class ScanImageTiffReader extends BaseTiffReader {
     		{
     			int tempSuffix = xyIdx*slices*acqsPerLoop+1+i;
     			String tempFile = base + Integer.toString(tempSuffix)+".tif";
+    			Location tempLoc = new Location(tempFile);
+    			
+    			//Check to see if the file exists
+    			if (tempLoc.exists() && !tempLoc.isDirectory())
+    			{
+    				usedFiles.add(tempFile);
+    			}
+    			else
+    			{
+    				warnFile(tempFile);
+    				singleTiffMode = true;
+    				return singleFile;
+    			}
     		}
 		}
 		
@@ -276,7 +294,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	@Override
 	protected void initFile(String id) throws FormatException, IOException {
 		super.initFile(id);
-
+		getSeriesUsedFiles();
 	}
 
 	
@@ -302,7 +320,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 
 	/** Emits a warning about a missing {@code <File>}. */
 	private void warnFile(String missingFile){
-		LOGGER.warn("The file ", missingFile, " does not exist.");
+		LOGGER.warn("The file " +  missingFile + " does not exist.");
 	}
 	
 	/** Emits a warning about the file having an incorrect file name */
