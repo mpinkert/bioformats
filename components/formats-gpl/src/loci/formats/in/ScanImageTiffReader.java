@@ -27,8 +27,8 @@ import loci.formats.tiff.TiffParser;
 public class ScanImageTiffReader extends BaseTiffReader {
 	// -- Constants --
 	private static final String SCANIMAGE_MAGIC_STRING = "scanimage";
-	private static final String METADATA_STRING = "Metadata.xml";
-	private static final String[] XML_SUFFIX = {"xml"};
+	private static final String METADATA_STRING = "Metadata.txt";
+	private static final String[] TXT_SUFFIX = {"txt"};
 	
 	// -- Fields --
 	/**Helper reader for opening images */
@@ -36,7 +36,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	
 	/** Pixel size*/
 	private double physicalSizeX, physicalSizeY, physicalSizeZ;
-	
+	 
 	/** Microscope Zoom*/
 	private Double zoom;
 	
@@ -46,19 +46,19 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	/** The list of tif files that should be present based on the metadata */
 	private String[] tifList;
 	
-	/** Optional xml file */
-	private Location xmlFile;
+	/** Optional txt metadata file */
+	private Location txtFile;
 	
 	/** Flag indicating that the reader is operating in a mode where grouping of files is
 	 * disallowed.  This happens when there is no associated Z-stack acquisition
-	 * for the selected file or associated xml file*/
+	 * for the selected file or associated txt file*/
 	private boolean singleTiffMode;
 	//TODO Ask Bioformats whether singleTiffMode is necessary or if we should be relying upon CAN_GROUP.
 	
 	// -- Constructor --
 
 	public ScanImageTiffReader() {
-		super("ScanImage", new String[] {"tif", "tiff", "xml"});
+		super("ScanImage", new String[] {"tif", "tiff", "txt"});
 		suffixSufficient = false;
 		domains = new String[] {FormatTools.LM_DOMAIN};
 		hasCompanionFiles = true;
@@ -69,7 +69,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	/* @see loci.formats.IFormatReader#isSingleFile(String) */
 	@Override
 	public boolean isSingleFile(String id) throws FormatException, IOException {
-		if (singleTiffMode && xmlFile == null) return true;
+		if (singleTiffMode && txtFile == null) return true;
 		else return false;
 	}	  
 //	  
@@ -97,7 +97,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 			zoom = null;
 			prefix = null;
 			tifList = null;
-			xmlFile = null;
+			txtFile = null;
 			singleTiffMode = false;
 		}
 	}
@@ -117,7 +117,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		final ArrayList<String> usedFiles = new ArrayList<String>();
 
 		//Add the optional metadata file to the used files list
-		if (xmlFile != null) usedFiles.add(xmlFile.getAbsolutePath());
+		if (txtFile != null) usedFiles.add(txtFile.getAbsolutePath());
 		
 		
 		if (!noPixels){
@@ -299,10 +299,10 @@ public class ScanImageTiffReader extends BaseTiffReader {
 
 	
 	// -- Helper methods --
-	/**Finds the optional XML metadata file*/
+	/**Finds the optional txt metadata file*/
 	private void findMetadataFile() {
 		LOGGER.info("Finding metadata files");
-		if (xmlFile == null) xmlFile = find(XML_SUFFIX);
+		if (txtFile == null) txtFile = find(TXT_SUFFIX);
 	}
 	  
 	/** Finds the first file with one of the given suffixes. */
