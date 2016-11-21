@@ -15,6 +15,7 @@ import loci.formats.ImageReader;
 import loci.formats.MetadataTools;
 import loci.formats.meta.MetadataStore;
 import loci.formats.tiff.TiffParser;
+import loci.common.DataTools;
 
 
 /**
@@ -233,6 +234,14 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    		singleTiffMode = true;
 	    	}
 	    	else{
+	    		//Finding the optional metadata file that gives us the pixel dimensions
+	    		findMetadataFile();
+	    		if(!(txtFile == null))
+	    		{
+	    			parseMetadataFile();
+	    		}
+	    		
+	    		
 	    		prefix = fileName.substring(0, fileName.lastIndexOf('_'));
 	    	
 	    		String suffix = fileName.substring(fileName.lastIndexOf('_')+1, fileName.lastIndexOf('.'));
@@ -256,20 +265,6 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    				//We can still read the file as a single tiff
 	    				singleTiffMode = true;
 	    			}
-	    			//Temporary statement for testing purposes.  A code block to find the files that should exist in the series that is being read.  
-	    			/*else
-	    			{
-	    				
-	    				String parent = file.getParent();
-	    		    	String base = parent + "/" + prefix + "_";
-	    	    		int acqsPerLoop = Integer.parseInt(getGlobalMeta("scanimage.SI.acqsPerLoop").toString());
-	    	    		for (int i = 0; i < slices*acqsPerLoop; i++)
-	    	    		{
-	    	    			int tempSuffix = xyIdx*slices*acqsPerLoop+1+i;
-	    	    			String tempFile = base + Integer.toString(tempSuffix)+".tif";
-	    	    			System.out.println(tempFile);
-	    	    		}
-	    			}*/
 	    		}
 	    		catch(NumberFormatException er){
     				warnSuffix(suffix, expectedSuffix);
@@ -305,6 +300,41 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		if (txtFile == null) txtFile = find(TXT_SUFFIX);
 	}
 	  
+	private void parseMetadataFile(){
+		LOGGER.info("Parsing the potential Metadata File");
+		String file;
+		try{
+			file = DataTools.readFile(txtFile.getAbsolutePath().toString());
+		}
+		catch(IOException er){
+			LOGGER.warn("The first metadata file cannot be opened");
+			return;
+		}
+		if (!(file == null))
+		{
+			String lines[] = file.split("\n");
+			int equals = lines[0].indexOf("=");
+			if (equals < 0) return;
+            String key = lines[0].substring(0, equals-1);
+            String value = lines[0].substring(equals + 2);
+            if (key == "FOV");
+            {
+            	addGlobalMeta(key, value);
+            }
+            return;
+            
+			//Parsing additional lines if we make the file larger
+			/*
+			for (String line : lines){
+	    		int equals = line.indexOf("=");
+	            if (equals < 0) continue;
+	            String key = line.substring(0, equals-1);
+	            String value = line.substring(equals + 2);
+	            addGlobalMeta(key, value);
+			}*/
+		}
+	}
+	
 	/** Finds the first file with one of the given suffixes. */
 	private Location find(final String[] suffix) {
 		final Location file = new Location(currentId).getAbsoluteFile();
