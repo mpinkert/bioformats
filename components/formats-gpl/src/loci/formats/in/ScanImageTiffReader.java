@@ -16,6 +16,10 @@ import loci.formats.MetadataTools;
 import loci.formats.meta.MetadataStore;
 import loci.formats.tiff.TiffParser;
 import loci.common.DataTools;
+import ome.units.UNITS;
+import ome.units.quantity.Length;
+import ome.units.unit.Unit;
+
 
 
 /**
@@ -37,6 +41,9 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	
 	/** Pixel size*/
 	private double physicalSizeX, physicalSizeY, physicalSizeZ;
+	
+	/** Field of View */
+	private double FOV;
 	 
 	/** Microscope Zoom*/
 	private Double zoom;
@@ -192,6 +199,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	            }
 	            else if (key.equals("scanimage.SI.acqsPerLoop")) tt = value;
 	            else if(key.equals("scanimage.SI.hStackManager.numSlices")) tz = value;
+	            else if(key.equals("scanimage.SI.hStackManager.stackZStepSize")) physicalSizeZ = Double.parseDouble(value);
 	            
 	    	}
 	    }
@@ -282,6 +290,21 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		super.initMetadataStore();
 	    MetadataStore store = makeFilterMetadata();
 	    MetadataTools.populatePixels(store, this);
+	    
+	    //We are checking if the metadata file was found.  If it was, we assign the physical size.
+	    if(!(txtFile == null))
+	    {
+	    	Length storeFOV = new Length(FOV, UNITS.MICROMETER);
+	    	store.setPixelsPhysicalSizeX(storeFOV, 0);
+	    	store.setPixelsPhysicalSizeY(storeFOV, 0);
+	    }
+	    //Assigning the Z resolution
+	    if(( singleTiffMode == false))
+	    {
+	    	Length ZRes = new Length(physicalSizeZ, UNITS.MICROMETER);
+	    	store.setPixelsPhysicalSizeZ(ZRes, 0);
+	    }
+	    
 	}
 
 	// -- Internal FormatReader API methods --
@@ -307,31 +330,34 @@ public class ScanImageTiffReader extends BaseTiffReader {
 			file = DataTools.readFile(txtFile.getAbsolutePath().toString());
 		}
 		catch(IOException er){
-			LOGGER.warn("The first metadata file cannot be opened");
+			LOGGER.warn("The metadata " + txtFile.getName() + " file cannot be opened");
 			return;
 		}
 		if (!(file == null))
 		{
+			//Make each line a string
 			String lines[] = file.split("\n");
-			int equals = lines[0].indexOf("=");
-			if (equals < 0) return;
-            String key = lines[0].substring(0, equals-1);
-            String value = lines[0].substring(equals + 2);
-            if (key == "FOV");
-            {
-            	addGlobalMeta(key, value);
-            }
+			
+			//Check for the correct metadata file format
+			if(lines[0] == "ScanImage Metadata File")
+			{
+				//Get the field of view
+				int equals = lines[1].indexOf("=");
+				if (equals < 0) return;
+	            if (lines[1].substring(0, equals-1) == "FOV");
+	            {
+	            	double value = Double.parseDouble(lines[0].substring(equals + 2));
+	            	FOV = value;
+	            }
+			}
+			else
+			{
+				LOGGER.warn("The metadata file " + txtFile.getName() + " is not of the correct format");
+				txtFile = null;
+			}
             return;
             
-			//Parsing additional lines if we make the file larger
-			/*
-			for (String line : lines){
-	    		int equals = line.indexOf("=");
-	            if (equals < 0) continue;
-	            String key = line.substring(0, equals-1);
-	            String value = line.substring(equals + 2);
-	            addGlobalMeta(key, value);
-			}*/
+
 		}
 	}
 	
