@@ -199,7 +199,7 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	            }
 	            else if (key.equals("scanimage.SI.acqsPerLoop")) tt = value;
 	            else if(key.equals("scanimage.SI.hStackManager.numSlices")) tz = value;
-	            else if(key.equals("scanimage.SI.hStackManager.stackZStepSize")) physicalSizeZ = Double.parseDouble(value);
+	      
 	            
 	    	}
 	    }
@@ -301,10 +301,13 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    //Assigning the Z resolution
 	    if(( singleTiffMode == false))
 	    {
-	    	Length ZRes = new Length(physicalSizeZ, UNITS.MICROMETER);
-	    	store.setPixelsPhysicalSizeZ(ZRes, 0);
+	    	String ZObject = getGlobalMeta("scanimage.SI.hStackManager.stackZStepSize").toString();
+	    	if (!(ZObject.equals("NaN")))
+	    	{	
+	    		Length ZRes = new Length(physicalSizeZ, UNITS.MICROMETER);
+	    		store.setPixelsPhysicalSizeZ(ZRes, 0);
+	    	}
 	    }
-	    
 	}
 
 	// -- Internal FormatReader API methods --
@@ -336,22 +339,24 @@ public class ScanImageTiffReader extends BaseTiffReader {
 		if (!(file == null))
 		{
 			//Make each line a string
-			String lines[] = file.split("\n");
-			
+			String lines[] = file.split("\\r\\n");
+
 			//Check for the correct metadata file format
-			if(lines[0] == "ScanImage Metadata File")
+			String firstLine = "ScanImage Metadata File";
+			if(lines[0].equals(firstLine))
 			{
 				//Get the field of view
 				int equals = lines[1].indexOf("=");
 				if (equals < 0) return;
-	            if (lines[1].substring(0, equals-1) == "FOV");
+	            if (lines[1].substring(0, equals-1).equals("FOV"));
 	            {
-	            	double value = Double.parseDouble(lines[0].substring(equals + 2));
+	            	double value = Double.parseDouble(lines[1].substring(equals + 2));
 	            	FOV = value;
 	            }
 			}
 			else
 			{
+				System.out.println(lines[0]);
 				LOGGER.warn("The metadata file " + txtFile.getName() + " is not of the correct format");
 				txtFile = null;
 			}

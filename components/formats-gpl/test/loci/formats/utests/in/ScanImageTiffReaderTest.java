@@ -53,7 +53,7 @@ public class ScanImageTiffReaderTest {
 		
 		//Paths for PC and for MAC
 		//String path = "C:/Users/mpinkert/Documents/SampleImages/multi-channel.ome.tif";
-		String path = "F:/SampleImages/cycletest/position_xyz_5.tif";
+		String path = "F:/SampleImages/cycletest/position_xyz_1.tif";
 		//String path = "/Users/Pinkert/Documents/SampleImages/cycletest/position_xyz_5.tif"; 
 		
 
