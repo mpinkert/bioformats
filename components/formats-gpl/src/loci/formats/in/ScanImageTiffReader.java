@@ -294,9 +294,11 @@ public class ScanImageTiffReader extends BaseTiffReader {
 	    //We are checking if the metadata file was found.  If it was, we assign the physical size.
 	    if(!(txtFile == null))
 	    {
-	    	Length storeFOV = new Length(FOV, UNITS.MICROMETER);
-	    	store.setPixelsPhysicalSizeX(storeFOV, 0);
-	    	store.setPixelsPhysicalSizeY(storeFOV, 0);
+	    	Length storeResX = new Length(physicalSizeX, UNITS.MICROMETER);
+	    	store.setPixelsPhysicalSizeX(storeResX, 0);
+	    	
+	    	Length storeResY = new Length(physicalSizeY, UNITS.MICROMETER);
+	    	store.setPixelsPhysicalSizeY(storeResY, 0);
 	    }
 	    //Assigning the Z resolution
 	    if(( singleTiffMode == false))
@@ -348,10 +350,11 @@ public class ScanImageTiffReader extends BaseTiffReader {
 				//Get the field of view
 				int equals = lines[1].indexOf("=");
 				if (equals < 0) return;
-	            if (lines[1].substring(0, equals-1).equals("FOV"));
+	            if (lines[1].substring(0, equals-1).equals("Pixel Size"));
 	            {
 	            	double value = Double.parseDouble(lines[1].substring(equals + 2));
-	            	FOV = value;
+	            	physicalSizeX = value;
+	            	physicalSizeY = value;
 	            }
 			}
 			else
